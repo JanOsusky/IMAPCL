@@ -168,6 +168,7 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
+    // Logout from the server
     logout(bio);
 
     // Cleanup
