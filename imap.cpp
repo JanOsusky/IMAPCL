@@ -2,7 +2,7 @@
 
 bool login(BIO *bio, string username, string password)
 {
-    string command = "A001 LOGIN " + username + " " + password + "\r\n";
+    string command = "A002 LOGIN " + username + " " + password + "\r\n";
     if (BIO_puts(bio, command.c_str()) <= 0)
     {
         if (!BIO_should_retry(bio))
@@ -14,11 +14,11 @@ bool login(BIO *bio, string username, string password)
     else
     {
         char buffer[4096];
-        int len = BIO_read(bio, buffer, 4096); // hardcoded buffer size
-        if (len > 0)
-        {
-            buffer[len] = '\0';
-            cerr << "Server response: " << buffer << endl;
+        BIO_read(bio, buffer, sizeof(buffer) - 1);
+        string strResponse(buffer);
+        if(strResponse.find("A002 OK") == string::npos) {
+            return false;
+        } else {
             return true;
         }
     }
@@ -51,11 +51,16 @@ void logout(BIO *bio)
 int fetchMail(BIO *bio, string mailbox, string outDir, bool onlyNew, bool headersOnly)
 {
 
-    // Ensure output directory exists
-    if (!filesystem::create_directory(outDir))
-    {
-        cerr << "Error creating output directory: " << outDir << endl;
-        return -1;
+      // Check if the directory already exists
+    if (filesystem::exists(outDir)) {
+        cout << "Output directory already exists: " << outDir << endl;
+    } else {
+        // Attempt to create the directory
+        if (!filesystem::create_directory(outDir)) {
+            cerr << "Error creating output directory: " << outDir << endl;
+            return -1;
+        }
+        cout << "Output directory created: " << outDir << endl;
     }
 
     // Step 1: Select the mailbox
@@ -63,19 +68,22 @@ int fetchMail(BIO *bio, string mailbox, string outDir, bool onlyNew, bool header
     BIO_puts(bio, select_cmd.c_str());
 
     // Read server response (optional, but good for error handling)
-    char response[1024];
+    char response[32768];
     BIO_read(bio, response, sizeof(response) - 1);
-    response[sizeof(response) - 1] = '\0';
-    std::cout << "Server Response: " << response << std::endl;
+    string strResponse(response);
+    if(strResponse.find("A003 OK") == string::npos) {
+        cerr << "Error selecting mailbox: " << mailbox << endl;
+        return -1;
+    }
 
     // Step 2: Search for messages (we can search for new messages)
-    std::string search_cmd = onlyNew ? "A002 SEARCH UNSEEN\r\n" : "A002 SEARCH ALL\r\n";
+    string search_cmd = onlyNew ? "A004 SEARCH UNSEEN\r\n" : "A004 SEARCH ALL\r\n";
     BIO_puts(bio, search_cmd.c_str());
 
     // Read search response
     BIO_read(bio, response, sizeof(response) - 1);
     response[sizeof(response) - 1] = '\0';
-    std::cout << "Search Response: " << response << std::endl;
+    cout << "Search Response: " << response << endl;
 
     // Example: Assume we parse the response to get message IDs
     vector<string> message_ids; // Populate this with the message IDs
@@ -87,7 +95,7 @@ int fetchMail(BIO *bio, string mailbox, string outDir, bool onlyNew, bool header
     int downloaded_count = 0;
     for (const auto &id : message_ids)
     {
-        string fetch_cmd = "A003 FETCH " + id + (headersOnly ? " BODY.PEEK[HEADER]" : " BODY[]") + "\r\n";
+        string fetch_cmd = "A00 FETCH " + id + (headersOnly ? " BODY.PEEK[HEADER]" : " BODY[]") + "\r\n";
         BIO_puts(bio, fetch_cmd.c_str());
 
         // Read fetch response
@@ -105,9 +113,10 @@ int fetchMail(BIO *bio, string mailbox, string outDir, bool onlyNew, bool header
         }
         else
         {
-            std::cerr << "Error saving email " << id << " to file." << std::endl;
+            cerr << "Error saving email " << id << " to file." << endl;
         }
     }
 
     return downloaded_count; // Return the count of downloaded messages
 }
+

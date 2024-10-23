@@ -80,6 +80,11 @@ int main(int argc, char *argv[])
     SSL_CTX *ctx = nullptr;
 
     int opt;
+
+    for (int i = 0; i < argc; ++i) {
+    cout << "Argument " << i << ": " << argv[i] << endl;
+}
+
     while ((opt = getopt(argc, argv, "p:Tc:C:nha:b:o:")) != -1)
     {
         switch (opt)
@@ -155,18 +160,23 @@ int main(int argc, char *argv[])
 
     if (bio == nullptr)
     {
-        std::cerr << "Connection failed" << std::endl;
+        std::cerr << "Připojení selhalo" << std::endl;
         return 1;
     }
 
     cout << "Connection successful to " << server << " on port " << port << endl;
-
+    
     // Login to the server
     if (!login(bio, username, password))
     {
-        cerr << "Login failed" << endl;
+        cerr << "Přihlášení selhalo" << endl;
         return EXIT_FAILURE;
     }
+
+    // Fetch mail from the server
+    int result = fetchMail(bio, mailbox, outDir, onlyNew, headersOnly);
+
+    cout << "Fetch mail result: " << result << endl;
 
     // Logout from the server
     logout(bio);

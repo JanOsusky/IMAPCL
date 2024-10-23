@@ -2,36 +2,30 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "(gdb) Launch 1.0",
-            "type": "cppdbg",
+            "name": "lldbs Launch 1.0",
+            "type": "lldb",
             "request": "launch",
-            "program": "${workspaceFolder}/main", // Path to your target executable
+            "program": "${workspaceFolder}/main",
             "args": [
-                "eva.fit.vutbr.cz",
-                "-o ",
+                "-n",
+                "-o",
                 "maildir",
                 "-a",
                 "authfile",
-                "-T"
-            ],
-            "stopAtEntry": false,
+                "-T",
+                "-b",
+                "picovina",
+                "eva.fit.vutbr.cz",
+                
+            ],   
             "cwd": "${workspaceFolder}",
-            "environment": [],
-            "externalConsole": false,
-            "MIMode": "gdb",
-            "setupCommands": [
-                {
-                    "description": "Enable pretty-printing for gdb",
-                    "text": "-enable-pretty-printing",
-                    "ignoreFailures": true
-                }
-            ],
-            "preLaunchTask": "Build with Makefile", // Ensure that the build task is run before debugging
-            "miDebuggerPath": "/usr/bin/gdb", // Adjust this if needed
-            "logging": {
-                "trace": true,
-                "traceResponse": true
-            }
+            "stopOnEntry": false,
+            "terminal": "integrated",
+            "preLaunchTask": "Build with Makefile",
+            "sourceLanguages": [
+                "c",
+                "cpp"
+            ]
         }
     ]
 }

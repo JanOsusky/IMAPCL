@@ -2,10 +2,10 @@
 CXX = g++
 
 # Compiler flags
-CXXFLAGS = -std=c++17 -Wall -fexceptions -g -Wextra -D_GLIBCXX_USE_CXX11_ABI=1 -lstdc++
+CXXFLAGS = -std=c++17 -Wall -fexceptions -g -Wextra -D_GLIBCXX_USE_CXX11_ABI=1 -I/opt/homebrew/opt/openssl@3/include
 
 # OpenSSL libraries (added extra linking flags)
-LIBS = -lssl -lcrypto -ldl -lz -pthread -lstdc++
+LIBS = -L/opt/homebrew/opt/openssl@3/lib -lssl -lcrypto -ldl -lz -pthread
 
 # Target executable
 TARGET = main
