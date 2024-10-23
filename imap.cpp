@@ -50,30 +50,13 @@ void logout(BIO *bio)
 
 int fetchMail(BIO *bio, string mailbox, string outDir, bool onlyNew, bool headersOnly)
 {
-    string command = "A003 SELECT " + mailbox + "\r\n";
-    if (BIO_puts(bio, command.c_str()) <= 0)
-    {
-        if (!BIO_should_retry(bio))
-        {
-            cerr << "Chyba při odesílání příkazu SELECT" << endl;
-            return -1;
-        }
-    }
-    else
-    {
-        char buffer[4096];
-        int len = BIO_read(bio, buffer, 4096); // hardcoded buffer size
-        if (len > 0)
-        {
-            buffer[len] = '\0';
-            cerr << "Server response: " << buffer << endl;
-        }
-    }
-
-    return 0;
 
     // Ensure output directory exists
-    filesystem::create_directory(outDir);
+    if (!filesystem::create_directory(outDir))
+    {
+        cerr << "Error creating output directory: " << outDir << endl;
+        return -1;
+    }
 
     // Step 1: Select the mailbox
     string select_cmd = "A003 SELECT \"" + mailbox + "\"\r\n";
@@ -95,7 +78,7 @@ int fetchMail(BIO *bio, string mailbox, string outDir, bool onlyNew, bool header
     std::cout << "Search Response: " << response << std::endl;
 
     // Example: Assume we parse the response to get message IDs
-    std::vector<std::string> message_ids; // Populate this with the message IDs
+    vector<string> message_ids; // Populate this with the message IDs
     // For demonstration, let's assume we got some message IDs
     message_ids.push_back("1");
     message_ids.push_back("2");
@@ -104,7 +87,7 @@ int fetchMail(BIO *bio, string mailbox, string outDir, bool onlyNew, bool header
     int downloaded_count = 0;
     for (const auto &id : message_ids)
     {
-        std::string fetch_cmd = "A003 FETCH " + id + (headers_only ? " BODY.PEEK[HEADER]" : " BODY[]") + "\r\n";
+        string fetch_cmd = "A003 FETCH " + id + (headersOnly ? " BODY.PEEK[HEADER]" : " BODY[]") + "\r\n";
         BIO_puts(bio, fetch_cmd.c_str());
 
         // Read fetch response
@@ -112,7 +95,7 @@ int fetchMail(BIO *bio, string mailbox, string outDir, bool onlyNew, bool header
         response[sizeof(response) - 1] = '\0';
 
         // Step 4: Save the email content to a file
-        std::string filename = out_dir + "/email_" + id + (headers_only ? ".header" : ".eml");
+        string filename = outDir + "/email_" + id + (headersOnly ? ".header" : ".eml");
         FILE *file = fopen(filename.c_str(), "w");
         if (file)
         {

@@ -3,6 +3,7 @@
 #include "openssl/bio.h"
 #include <iostream>
 #include <filesystem>
+#include <vector>
 using namespace std;
 
 bool login(BIO *bio, string username, string password);
