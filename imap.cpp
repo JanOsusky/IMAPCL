@@ -179,7 +179,7 @@ int fetchMail(BIO *bio, string mailbox, string outDir, bool onlyNew, bool header
             fputs(email.c_str(), file);
             fclose(file);
             downloaded_count++;
-            cout << "email " << id << " saved to " << filename << endl;
+           // cout << "email " << id << " saved to " << filename << endl;
         }
         else
         {
