@@ -1,6 +1,6 @@
 # IMAPCL - IMAP Klient v C++
 
-IMAPCL je aplikace příkazového řádku v C++ pro přístup a stahování emailů z IMAP serveru. Tento program je implementací všech požadavků základního zadání projektu IMAPCL z předmětu ISA. Uživatelé mohou stahovat emailové zprávy a ukládat je do určené složky. Klient je postavený podle protokolu IMAP4rev1, jak je specifikováno v [RFC 3501](https://www.rfc-editor.org/rfc/rfc3501).
+IMAPCL je aplikace příkazového řádku v C++ pro přístup a stahování emailů z IMAP serveru. Tento program je implementací všech požadavků základního zadání projektu IMAPCL z předmětu ISA. Uživatelé mohou stahovat emailové zprávy a ukládat je do určené složky. Klient je postavený podle protokolu IMAP4rev1, jak je specifikováno v [RFC 3501](https://www.rfc-editor.org/rfc/rfc3501). Program byl otestován na až stažení 1500 emailů.
 
 ## Funkce
 - Připojení k IMAP serverům a autentizace pomocí uživatelského jména a hesla s možností bezpečného připojení přes SSL.
@@ -38,7 +38,7 @@ Aplikace `imapcl` slouží k připojení na IMAP server a umožňuje stahování
 
 ## Příklad použití:
 
-`.\imapcl mail.server.cz -p 993 -T -c cert.pem -a auth_file -b INBOX -o /home/user/emails`
+`.\imapcl mail.server.cz -p 993 -T -a auth_file -b INBOXMine -o /home/user/emails`
 
 
 

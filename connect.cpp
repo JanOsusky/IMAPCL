@@ -1,3 +1,15 @@
+/**
+ * @file connect.cpp
+ * @brief Connection utility functions for the IMAPCL project.
+ * 
+ * This file contains utility functions for connecting to an IMAP server using OpenSSL.
+ * The program connects to an IMAP server, authenticates using provided credentials, and fetches emails.
+ * 
+ * @project IMAPCL
+ * @date 2024-10-24
+ * @author Jan Osuský
+ * @login xosusk00
+ */
 #include "connect.h"
 
 using namespace std;
@@ -9,6 +21,7 @@ void InitializeOpenSSL()
     OpenSSL_add_all_algorithms();
 }
 
+// Connect to the server using the provided parameters
 BIO *connectToServer(string server, string port, bool useTLS, string certFile, string certDir, SSL_CTX **ctx)
 {
 
@@ -24,7 +37,7 @@ BIO *connectToServer(string server, string port, bool useTLS, string certFile, s
         if (certFile == "")
         {
 
-            if (!SSL_CTX_load_verify_locations(*ctx, NULL, certDir.c_str()))
+            if (!SSL_CTX_load_verify_locations(*ctx, NULL, certDir.c_str())) // Load the default certificate directory
             {
                 cerr << "Chyba při načítání certifikátu" << endl;
                 return nullptr;
@@ -33,7 +46,7 @@ BIO *connectToServer(string server, string port, bool useTLS, string certFile, s
         else
         {
 
-            if (!SSL_CTX_load_verify_locations(*ctx, certFile.c_str(), NULL))
+            if (!SSL_CTX_load_verify_locations(*ctx, certFile.c_str(), NULL))  // Load the certificate file
             {
                 cerr << "Chyba při načítání certifikátu" << endl;
                 return nullptr;
@@ -48,7 +61,7 @@ BIO *connectToServer(string server, string port, bool useTLS, string certFile, s
         if (SSL_get_verify_result(ssl) != X509_V_OK)
         {
             cerr << "Chyba ověření certifikátu" << endl;
-            return nullptr; // TODO: mozna by to nebylo nutne vratit nullptr a klidne pokracovat nevim
+            return nullptr; 
         }
     }
     else // Initialize connection with the server without TLS

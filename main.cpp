@@ -50,11 +50,11 @@ void printUsage()
     cout << "-Parametr -b specifikuje název schránky, se kterou se bude na serveru pracovat. Výchozí hodnota je INBOX.\n";
     cout << "-Povinný parametr -o out_dir specifikuje výstupní adresář, do kterého má program stažené zprávy uložit.\n";
 }
-
+// Function to trim whitespace from a string
  std::string trim(const std::string& str) {
     return std::regex_replace(str, std::regex("^\\s+|\\s+$"), "");
 }
-
+// Function to parse the authentication file
 bool parseAuthFile(const string &authFile, string &username, string &password)
 {
     ifstream file(authFile);
@@ -85,7 +85,7 @@ bool parseAuthFile(const string &authFile, string &username, string &password)
             }
         }
     }
-
+    // Check if both username and password were found
     if (username.empty() || password.empty())
     {
         cerr << "Error: Missing username or password in auth file\n";
@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
     SSL_CTX *ctx = nullptr;
 
     int opt;
-
+    // Parse command line arguments
     while ((opt = getopt(argc, argv, "p:Tc:C:nha:b:o:")) != -1)
     {
         switch (opt)
@@ -147,7 +147,7 @@ int main(int argc, char *argv[])
             break;
         default:
             printUsage();
-            return EXIT_FAILURE;
+            return -1;
         }
     }
 
@@ -155,17 +155,17 @@ int main(int argc, char *argv[])
     {
         server = argv[optind];
     }
-
+    // Check if required arguments are present
     if (server.empty() || authFile.empty() || outDir.empty())
     {
         printUsage();
-        return EXIT_FAILURE;
+        return -1;
     }
 
     string username, password;
     if (!parseAuthFile(authFile, username, password))
     {
-        return EXIT_FAILURE;
+        return -1;
     }
 
     // Initialize the OpenSSL library
@@ -181,12 +181,13 @@ int main(int argc, char *argv[])
     if (!login(bio, username, password))
     {
         cerr << "Přihlášení selhalo" << endl;
-        return EXIT_FAILURE;
+        return -1;
     }
 
     // Fetch mail from the server
     int result = fetchMail(bio, mailbox, outDir, onlyNew, headersOnly);
-
+    
+    // Print the result
     cout << "Staženo " << result << (headersOnly ? " hlaviček" : "") <<  (onlyNew ? " nových zpráv " : " zpráv ") << "ze schránky " << mailbox <<  " do složky " << outDir <<   endl;
 
     // Logout from the server

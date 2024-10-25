@@ -1,5 +1,17 @@
+/**
+ * @file imap.cpp
+ * @brief IMAP utility functions for the IMAPCL project.
+ * 
+ * This file contains utility functions for working with IMAP servers using OpenSSL.
+ * The program connects to an IMAP server, authenticates using provided credentials, and fetches emails.
+ * 
+ * @project IMAPCL
+ * @date 2024-10-24
+ * @author Jan Osuský
+ * @login xosusk00
+ */
 #include "imap.h"
-
+bool containsLetter = false; // Global variable to check if the string contains a letter, special case
 // Function to log in to the server
 bool login(BIO *bio, string username, string password)
 {
@@ -45,13 +57,23 @@ void logout(BIO *bio)
     }
 }
 
-// Function to trim whitespace from both ends of a string
+// Function to trim whitespace from both ends of a string and possible non number characters
 string trim(string s) {
    size_t start = s.find_first_not_of(" \t\n\r\f\v");
     if (start == std::string::npos) return ""; 
 
     size_t end = s.find_last_not_of(" \t\n\r\f\v"); 
-    return s.substr(start, end - start + 1);
+    string cleared = s.substr(start, end - start + 1);
+    string numberPart;
+    for (char ch : cleared) {
+        if (isdigit(ch)) {
+            numberPart += ch;
+        } else {
+            containsLetter = true;
+            break;
+        }
+    }
+    return numberPart;
 }
 
 int fetchMail(BIO *bio, string mailbox, string outDir, bool onlyNew, bool headersOnly)
@@ -70,7 +92,7 @@ int fetchMail(BIO *bio, string mailbox, string outDir, bool onlyNew, bool header
     string select_cmd = "A003 SELECT \"" + mailbox + "\"\r\n";
     BIO_puts(bio, select_cmd.c_str());
 
-    // Read server response (optional, but good for error handling)
+    // Read server response for errors checking
     char response[8192];
     BIO_read(bio, response, sizeof(response) - 1);
     string strResponse(response);
@@ -89,7 +111,6 @@ int fetchMail(BIO *bio, string mailbox, string outDir, bool onlyNew, bool header
     strResponse.clear();
     strResponse.append(response);
     if (strResponse.find("* SEARCH") != string::npos && strResponse.find("* SEARCH\r\n") == string::npos) {
-      // Use istringstream to split the response line by line
     istringstream responseStream(strResponse);
     string line;
     while (getline(responseStream, line)) {
@@ -106,8 +127,12 @@ int fetchMail(BIO *bio, string mailbox, string outDir, bool onlyNew, bool header
             while (idsStream >> id) {
                 id = trim(id);
                 message_ids.push_back(id);
+                if (containsLetter)
+                {
+                    break;
+                }
             }
-            break; // We only need to process the first * SEARCH line
+            break;
         }
     }
     } else {
@@ -139,8 +164,8 @@ int fetchMail(BIO *bio, string mailbox, string outDir, bool onlyNew, bool header
             response[len] = '\0';
             email.append(response);
 
-            // Check if the response contains the end of the email
-            if (strstr(response, "A00 OK") != nullptr)
+            // Check if the response contains the end of the email, sometimes it is "A00 OK" or "OK Fetch" or "Fetch completed" because the Bio_read may not read the whole email at once and cut the end.
+            if (strstr(response, "A00 OK") != nullptr || strstr(response, "OK Fetch") != nullptr || strstr(response, "Fetch completed") != nullptr)
             {
                 fetch_completed = true;
             }
@@ -154,6 +179,7 @@ int fetchMail(BIO *bio, string mailbox, string outDir, bool onlyNew, bool header
             fputs(email.c_str(), file);
             fclose(file);
             downloaded_count++;
+            cout << "email " << id << " saved to " << filename << endl;
         }
         else
         {
@@ -161,6 +187,6 @@ int fetchMail(BIO *bio, string mailbox, string outDir, bool onlyNew, bool header
         }
     }
 
-    return downloaded_count; // Return the count of downloaded messages
+    return downloaded_count; // Return the count of downloaded emails
 }
 

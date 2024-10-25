@@ -1,3 +1,12 @@
+/**
+ * @file imap.h
+ * @brief IMAP utility functions for the IMAPCL project.
+ * @project IMAPCL
+ * @date 2024-10-24
+ * @author Jan Osuský
+ * @login xosusk00
+ */
+
 #ifndef IMAP_H
 #define IMAP_H
 #include "openssl/bio.h"
