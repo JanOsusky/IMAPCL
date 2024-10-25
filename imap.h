@@ -4,6 +4,7 @@
 #include <iostream>
 #include <filesystem>
 #include <vector>
+#include <sstream>
 using namespace std;
 
 bool login(BIO *bio, string username, string password);

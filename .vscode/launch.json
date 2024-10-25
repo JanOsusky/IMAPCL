@@ -7,16 +7,12 @@
             "request": "launch",
             "program": "${workspaceFolder}/main",
             "args": [
-                "-n",
                 "-o",
                 "maildir",
+                "-T",
                 "-a",
                 "authfile",
-                "-T",
-                "-b",
-                "picovina",
-                "eva.fit.vutbr.cz",
-                
+                "imap.fit.vutbr.cz",              
             ],   
             "cwd": "${workspaceFolder}",
             "stopOnEntry": false,

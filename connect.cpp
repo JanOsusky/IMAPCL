@@ -63,12 +63,6 @@ BIO *connectToServer(string server, string port, bool useTLS, string certFile, s
     }
 
     char buffer[4096];
-    int len = BIO_read(bio, buffer, 4096); // hardcoded buffer size
-    if (len > 0)
-    {
-        buffer[len] = '\0';
-        cerr << "Server response: " << buffer << endl;
-    }
-
+    BIO_read(bio, buffer, 4096); // hardcoded buffer size
     return bio; // Return the bio object
 }

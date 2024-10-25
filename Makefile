@@ -8,7 +8,7 @@ CXXFLAGS = -std=c++17 -Wall -fexceptions -g -Wextra -D_GLIBCXX_USE_CXX11_ABI=1 -
 LIBS = -L/opt/homebrew/opt/openssl@3/lib -lssl -lcrypto -ldl -lz -pthread
 
 # Target executable
-TARGET = main
+TARGET = imapcl 
 
 # Source files
 SRCS = main.cpp connect.cpp imap.cpp

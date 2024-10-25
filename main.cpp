@@ -1,8 +1,32 @@
+/**
+ * @file main.cpp
+ * @brief Main entry point for the IMAPCL project.
+ * 
+ * This file contains the main function and related utility functions for the IMAPCL project.
+ * The program connects to an IMAP server, authenticates using provided credentials, and fetches emails.
+ * 
+ * @project IMAPCL
+ * @date 2024-10-24
+ * @author Jan Osuský
+ * @login xosusk00
+ */
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <map>
 #include <unistd.h>
+#include <regex>
+
+#include "imap.h"
+#include "connect.h"
+
+// Bring standard library components into the current scope
+using namespace std;
+#include <fstream>
+#include <string>
+#include <map>
+#include <unistd.h>
+#include <regex>
 
 #include "imap.h"
 #include "connect.h"
@@ -10,6 +34,7 @@
 // Bring standard library components into the current scope
 using namespace std;
 
+// Function to print the usage of the program
 void printUsage()
 {
     cout << "\n--Použití: imapcl server [-p port] [-T [-c certfile] [-C certaddr]] [-n] [-h] -a auth_file [-b MAILBOX] -o out_dir\n\n\n";
@@ -24,6 +49,10 @@ void printUsage()
     cout << "-Povinný parametr -a auth_file odkazuje na soubor s autentizaci (příkaz LOGIN), obsah konfiguračního souboru auth_file je zobrazený níže.\n";
     cout << "-Parametr -b specifikuje název schránky, se kterou se bude na serveru pracovat. Výchozí hodnota je INBOX.\n";
     cout << "-Povinný parametr -o out_dir specifikuje výstupní adresář, do kterého má program stažené zprávy uložit.\n";
+}
+
+ std::string trim(const std::string& str) {
+    return std::regex_replace(str, std::regex("^\\s+|\\s+$"), "");
 }
 
 bool parseAuthFile(const string &authFile, string &username, string &password)
@@ -43,6 +72,9 @@ bool parseAuthFile(const string &authFile, string &username, string &password)
         {
             string key = line.substr(0, delim);
             string value = line.substr(delim + 1);
+            key = trim(key);
+            value = trim(value);
+           
             if (key == "username")
             {
                 username = value;
@@ -80,10 +112,6 @@ int main(int argc, char *argv[])
     SSL_CTX *ctx = nullptr;
 
     int opt;
-
-    for (int i = 0; i < argc; ++i) {
-    cout << "Argument " << i << ": " << argv[i] << endl;
-}
 
     while ((opt = getopt(argc, argv, "p:Tc:C:nha:b:o:")) != -1)
     {
@@ -140,22 +168,7 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    // Print parsed arguments for debugging purposes
-    cout << "Server: " << server << "\n";
-    cout << "Port: " << port << "\n";
-    cout << "Use TLS: " << (useTLS ? "Yes" : "No") << "\n";
-    if (useTLS)
-    {
-        cout << "Cert File: " << certFile << "\n";
-        cout << "Cert Dir: " << certDir << "\n";
-    }
-    cout << "Only new messages: " << (onlyNew ? "Yes" : "No") << "\n";
-    cout << "Headers only: " << (headersOnly ? "Yes" : "No") << "\n";
-    cout << "Mailbox: " << mailbox << "\n";
-    cout << "Output Directory: " << outDir << "\n";
-    cout << "Username: " << username << "\n";
-    cout << "Password: (hidden)\n";
-    // TODO: test TSL connections
+    // Initialize the OpenSSL library
     bio = connectToServer(server, port, useTLS, certFile, certDir, &ctx);
 
     if (bio == nullptr)
@@ -163,8 +176,6 @@ int main(int argc, char *argv[])
         std::cerr << "Připojení selhalo" << std::endl;
         return 1;
     }
-
-    cout << "Connection successful to " << server << " on port " << port << endl;
     
     // Login to the server
     if (!login(bio, username, password))
@@ -176,7 +187,7 @@ int main(int argc, char *argv[])
     // Fetch mail from the server
     int result = fetchMail(bio, mailbox, outDir, onlyNew, headersOnly);
 
-    cout << "Fetch mail result: " << result << endl;
+    cout << "Staženo " << result << (headersOnly ? " hlaviček" : "") <<  (onlyNew ? " nových zpráv " : " zpráv ") << "ze schránky " << mailbox <<  " do složky " << outDir <<   endl;
 
     // Logout from the server
     logout(bio);
