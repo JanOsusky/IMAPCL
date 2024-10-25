@@ -47,7 +47,7 @@ Aplikace `imapcl` slouží k připojení na IMAP server a umožňuje stahování
 
 ## Odevzdané soubory
 - **README**: Tento popisný soubor.
-- **imapcl.cpp**: Hlavní zdrojový soubor programu.
+- **main.cpp**: Hlavní zdrojový soubor programu.
 - **connect.cpp**, **imap.cpp**: Soubory pro IMAP připojení a zpracování e-mailů.
 - **connect.h**, **imap.h**: Hlavičkové soubory pro deklaraci tříd a funkcí.
 - **Makefile**: Soubor pro sestavení aplikace.
