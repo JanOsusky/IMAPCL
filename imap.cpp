@@ -105,11 +105,22 @@ int fetchMail(BIO *bio, string mailbox, string outDir, bool onlyNew, bool header
     string search_cmd = onlyNew ? "A004 SEARCH UNSEEN\r\n" : "A004 SEARCH ALL\r\n";
     BIO_puts(bio, search_cmd.c_str());
 
-    // Read search response
-    vector<string> message_ids; // Vector to store the message IDs
-    BIO_read(bio, response, sizeof(response) - 1);
+    bool fetch_completed = false;
     strResponse.clear();
-    strResponse.append(response);
+    // Read search response
+    
+    while(!fetch_completed)
+    {
+        int len = BIO_read(bio, response, sizeof(response) - 1);
+        response[len] = '\0';
+        strResponse.append(response);
+        if (strstr(response, "A004 OK") != nullptr || strstr(response, "OK Search") != nullptr || strstr(response, "Search completed") != nullptr)
+        {
+            fetch_completed = true;
+        }
+    }
+    vector<string> message_ids; // Vector to store the message IDs
+
     if (strResponse.find("* SEARCH") != string::npos && strResponse.find("* SEARCH\r\n") == string::npos) {
     istringstream responseStream(strResponse);
     string line;
@@ -171,6 +182,18 @@ int fetchMail(BIO *bio, string mailbox, string outDir, bool onlyNew, bool header
             }
         }
 
+    istringstream input(email);
+    ostringstream output;
+    string line;
+
+    while (std::getline(input, line)) {
+        // Check if the line does not contain "A00 OK"
+        if (line.find("A00 OK") == string::npos && line.find("FETCH") == string::npos) {
+            output << line << '\n';
+        }
+    }
+    email = output.str();
+
         // Save the email content to a file
         string filename = outDir + "/email_" + id + (headersOnly ? ".header" : ".eml");
         FILE *file = fopen(filename.c_str(), "w");
@@ -179,8 +202,8 @@ int fetchMail(BIO *bio, string mailbox, string outDir, bool onlyNew, bool header
             fputs(email.c_str(), file);
             fclose(file);
             downloaded_count++;
-           // cout << "email " << id << " saved to " << filename << endl;
-        }
+            //cout << "email " << id << " saved to " << filename << endl;
+        }   
         else
         {
             cerr << "Error saving email " << id << " to file." << endl;
